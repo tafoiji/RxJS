@@ -9,7 +9,7 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname + '/index.html'));
 });
 
-app.get('/SecondPage', (req, res) => {
+app.get('/download', (req, res) => {
   const filePath = path.join(__dirname, 'звукозапись.json');
   res.download(filePath);
 });

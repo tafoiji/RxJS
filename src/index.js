@@ -1,24 +1,14 @@
-import { Observable, fromEvent, from } from "rxjs";
+import { Observable, fromEvent, from, EMPTY} from "rxjs";
+import { ajax } from 'rxjs/ajax';
+import {switchMap, map, catchError, tap} from 'rxjs/operators'
 
 //const { Observable, fromEvent } = require("rxjs");
 
 var area = document.getElementById("start");
 
-function switchToState()
-{
-    area.innerHTML = "";
-        from($.getJSON("http://localhost:3000/files/звукозапись.json")).subscribe(
-            {
-                next: x => DataLoaded(x),
-                error: err => ErrorHandler(err),
-                complete: () => undefined
-            });
-}
-
 function DataLoaded(data)
 {
     area.innerHTML = "";
-    
     var table = document.createElement("table");
     table.border = 1;
     var header = document.createElement("tr");
@@ -49,7 +39,7 @@ function DataLoaded(data)
 function ErrorHandler(err)
  {
     
-    alert(err.status + ': ' + err.statusText);
+    alert("Error code: " + err.status);
     console.log(err);
  }
 
@@ -64,8 +54,45 @@ secPage.value = 'Удалить данные';
 document.body.appendChild(main);
 document.body.appendChild(secPage);
 
-fromEvent(main, "click").subscribe(switchToState);
-fromEvent(secPage, "click").subscribe(() => {
+fromEvent(main, "click").pipe(
+    switchMap(
+        () => ajax.getJSON("http://localhost:3000/files/звукозапись.json").pipe
+        (
+            map(
+                data => {DataLoaded(data);},
+            )
+            ,
+            catchError(error => {
+                ErrorHandler(error);
+                return EMPTY;
+            })
+        )
+    )
+    
+)
+.subscribe(
+    () => console.log('Completed')
+)
+
+
+fromEvent(secPage, "click").pipe(
+    tap(
+        () => {
+            if (area.childNodes != null && area.childNodes[0].lastChild != null)
+            {
+                area.childNodes[0].lastChild.remove();
+            }
+            else
+            {
+                alert("nothing to remove");
+            }
+        }
+    )
+
+)
+.subscribe()
+
+/*fromEvent(secPage, "click").subscribe(() => {
     if (area.childNodes[0].lastChild != null)
     {
         area.childNodes[0].lastChild.remove();
@@ -74,4 +101,4 @@ fromEvent(secPage, "click").subscribe(() => {
     {
         alert("nothing to remove");
     }
-});
+});*/
